@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAD POINT Lead Caller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- SheetJS Library for Excel reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- CSS Styles (No Changes Here) --- */
+        body {
+            font-family: 'Poppins', sans-serif; line-height: 1.6; margin: 0; padding: 15px;
+            background-color: #f4f4f4; color: #333; -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .container {
+            max-width: 700px; margin: 15px auto; background: #fff; padding: 25px;
+            border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333; text-align: center; margin-top: 0; margin-bottom: 20px;
+            font-size: 1.8em; font-weight: 600;
+        }
+        h1 .cad-red { color: red; font-weight: bold; }
+        h1 .point-black { color: black; font-weight: bold; }
+        h1 .caller-blue { color: #0056b3; }
+        h2 {
+            color: #0056b3; text-align: center; margin-bottom: 5px;
+            font-size: 1.4em; font-weight: 600;
+        }
+        .input-section, .output-section, .how-to-use-section, .footer-section {
+            margin-bottom: 25px; padding: 15px; border: 1px solid #ddd;
+            border-radius: 5px; background-color: #fff;
+        }
+        textarea {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;
+            font-size: 1em; margin-bottom: 10px; display: block; box-sizing: border-box;
+            font-family: inherit; resize: vertical;
+        }
+        button, .file-label {
+            display: inline-block; background-color: #007bff; color: white; padding: 10px 15px;
+            border: none; border-radius: 4px; cursor: pointer; font-size: 0.95em;
+            text-align: center; transition: background-color 0.3s ease, transform 0.1s ease;
+            margin-top: 5px; margin-right: 5px; vertical-align: middle;
+            font-family: inherit; font-weight: 600; -webkit-tap-highlight-color: transparent;
+        }
+        button:hover, .file-label:hover { background-color: #0056b3; }
+        button:active, .file-label:active { transform: scale(0.98); }
+        #clearFileBtn { background-color: #dc3545; }
+        #clearFileBtn:hover { background-color: #c82333; }
+        input[type="file"] { display: none; }
+        .file-input-area { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+        #fileName {
+            font-style: italic; color: #555; flex-grow: 1; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; min-width: 100px;
+            font-family: inherit; font-size: 0.9em;
+        }
+        #outputNumbers ul { list-style: none; padding: 0; margin: 0; }
+        #outputNumbers li {
+            margin-bottom: 10px; padding: 10px; background-color: #e9ecef; border-radius: 4px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+        }
+        #outputNumbers a.call-link {
+            text-decoration: none; color: #007bff; font-weight: 600; font-size: 1em;
+            padding: 6px 12px; border: 1px solid #007bff; border-radius: 4px; background-color: white;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.1s ease;
+            white-space: nowrap; flex-shrink: 0; font-family: inherit; -webkit-tap-highlight-color: transparent;
+        }
+        #outputNumbers a.call-link:hover { background-color: #007bff; color: white; }
+        #outputNumbers a.call-link:active { transform: scale(0.98); }
+        #outputNumbers li span.number-text { word-break: break-all; flex-grow: 1; font-family: inherit; }
+        .error-message {
+            color: red; font-weight: 600; margin-top: 10px; margin-bottom: 10px;
+            min-height: 1.2em; text-align: center; font-family: inherit; font-size: 0.9em;
+        }
+        .how-to-use-section { background-color: #f0f8ff; border-left: 5px solid #007bff; }
+        .how-to-use-section h2 { margin-top: 0; color: #0056b3; font-weight: 600; }
+        .how-to-use-section h3 {
+            color: #333; margin-top: 15px; margin-bottom: 8px; border-bottom: 1px solid #eee;
+            padding-bottom: 5px; font-weight: 600; font-size: 1.1em;
+        }
+        .how-to-use-section p, .how-to-use-section ol { margin-bottom: 10px; color: #555; font-family: inherit; font-size: 0.95em; }
+        .how-to-use-section ol { padding-left: 20px; }
+        .how-to-use-section li { margin-bottom: 8px; }
+        .how-to-use-section .conclusion { margin-top: 15px; font-weight: bold; color: #0056b3; font-family: inherit; }
+        .footer-section {
+            margin-top: 30px; padding: 15px; border-top: 1px solid #ccc; text-align: center;
+            font-size: 0.9em; color: #444; background-color: #f9f9f9; font-family: inherit;
+        }
+        .footer-section p { margin-bottom: 10px; line-height: 1.5; }
+        .footer-section a { color: #0056b3; text-decoration: none; font-weight: 600; }
+        .footer-section a:hover { text-decoration: underline; }
+        .footer-section .whatsapp-icon::before { content: '💬'; margin-right: 4px; }
+        .footer-section .phone-icon::before { content: '📞'; margin-right: 4px; }
+        .section-subtitle {
+            text-align: center; font-family: 'Poppins', sans-serif; font-size: 1.1em;
+            font-weight: 600; margin-top: 0px; margin-bottom: 15px; padding: 5px 0;
+        }
+        .section-subtitle .gradient-text {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; margin: 10px auto; }
+            h1 { font-size: 1.5em; margin-bottom: 15px; }
+            h2 { font-size: 1.2em; }
+            .section-subtitle { font-size: 1em; margin-bottom: 15px; }
+            .input-section, .output-section, .how-to-use-section, .footer-section {
+                padding: 12px; margin-bottom: 20px;
+            }
+             button, .file-label { padding: 8px 12px; font-size: 0.9em; }
+            #fileName { font-size: 0.85em; margin-left: 5px; margin-right: 5px; }
+             .file-input-area { gap: 8px; }
+            #outputNumbers li { padding: 8px; gap: 8px; }
+             #outputNumbers a.call-link { font-size: 0.95em; padding: 5px 10px; }
+              #outputNumbers li span.number-text { font-size: 0.95em; }
+             .how-to-use-section h3 { font-size: 1em; }
+             .how-to-use-section p, .how-to-use-section ol { font-size: 0.9em; }
+             .footer-section { font-size: 0.85em; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <h1>
+            <span class="cad-red">CAD</span> <span class="point-black">POINT</span> <span class="caller-blue">Lead Caller</span>
+        </h1>
+
+        <!-- Error Message Area -->
+        <div id="errorMessage" class="error-message"></div>
+
+        <!-- Input Section 1: Paste Numbers -->
+        <div class="input-section">
+            <h2>1. नंबर पेस्ट करें (हर नंबर नई लाइन पर)</h2>
+            <p class="section-subtitle">
+                <span class="gradient-text">Ab Number Dial karne ka Jhanjhat khatam</span> 😂
+            </p>
+            <textarea id="numberInput" rows="8" placeholder="यहां फ़ोन नंबर पेस्ट करें..."></textarea>
+            <button id="processTextBtn">पेस्ट किए गए नंबर प्रोसेस करें</button>
+        </div>
+
+        <!-- Input Section 2: Upload File -->
+        <div class="input-section">
+            <h2>या 2. लीड फ़ाइल अपलोड करें (.txt, .csv, .xls, .xlsx)</h2>
+            <div class="file-input-area">
+                 <label for="fileInput" class="file-label">फ़ाइल चुनें</label>
+                 <input type="file" id="fileInput" accept=".txt, .csv, .xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"> <!-- More specific MIME types added -->
+                 <span id="fileName">कोई फ़ाइल नहीं चुनी गई</span>
+                 <button id="clearFileBtn" title="चयन हटाएं">X</button>
+             </div>
+        </div>
+
+        <!-- Output Section: Clickable Numbers -->
+        <div class="output-section">
+            <h2>क्लिक करने योग्य नंबर</h2>
+            <div id="outputNumbers">
+                <p>यहां प्रोसेस किए गए नंबर दिखाई देंगे...</p>
+            </div>
+        </div>
+
+        <!-- How to Use Section -->
+        <div class="how-to-use-section">
+             <!-- Content remains the same -->
+            <h2>कैसे इस्तेमाल करें (How to Use)</h2>
+            <h3>तरीका 1: मोबाइल से (आसान तरीका)</h3>
+            <ol>
+                <li>आपके कंप्यूटर या लैपटॉप में जितने भी नंबर हैं, उनकी लिस्ट को अपने किसी WhatsApp नंबर पर भेजें (जिस मोबाइल से आप कॉल करना चाहते हैं)।</li>
+                <li>मोबाइल में WhatsApp खोलें, उन सभी नंबरों को एक साथ चुनें (Select All) और कॉपी करें।</li>
+                <li>इस टूल (वेबपेज) को अपने मोबाइल ब्राउज़र में खोलें और कॉपी किये हुए नंबरों को ऊपर वाले टेक्स्ट बॉक्स में पेस्ट करें।</li>
+                <li>"पेस्ट किए गए नंबर प्रोसेस करें" बटन पर क्लिक करें।</li>
+                <li>अब हर नंबर के सामने "कॉल करें" का बटन आ जाएगा। जिस नंबर पर कॉल करना है, उसके बटन पर क्लिक करें, नंबर आपके मोबाइल डायलर में अपने आप आ जाएगा।</li>
+            </ol>
+            <h3>तरीका 2: कंप्यूटर से (लिंक्ड मोबाइल के साथ)</h3>
+             <ol>
+                <li>सुनिश्चित करें कि आपके कंप्यूटर के Chrome ब्राउज़र और आपके मोबाइल फ़ोन (Android) में एक ही Google (Gmail) अकाउंट लॉग इन है।</li>
+                <li>Chrome की "Call from device" या "फ़ोन से कॉल करें" सुविधा सेटअप होनी चाहिए।</li>
+                <li>इस टूल को कंप्यूटर के Chrome ब्राउज़र में खोलें।</li>
+                <li>ऊपर वाले टेक्स्ट बॉक्स में सभी नंबर कॉपी-पेस्ट करें या फ़ाइल अपलोड करें और प्रोसेस करें।</li>
+                <li>जिस नंबर पर कॉल करना है, उसके सामने "कॉल करें" लिंक पर क्लिक करें।</li>
+                <li>Chrome में एक छोटा पॉप-अप आएगा जो पूछेगा कि आप किस लिंक्ड मोबाइल डिवाइस से कॉल करना चाहते हैं। अपना मोबाइल डिवाइस चुनें।</li>
+                <li>नंबर आपके मोबाइल के डायलर स्क्रीन पर अपने आप दिखने लगेगा, बस कॉल बटन दबाना होगा।</li>
+             </ol>
+             <p class="conclusion">
+                 निष्कर्ष: तरीका 1 (मोबाइल से इस्तेमाल) ज़्यादा आसान और सीधा है।
+             </p>
+        </div>
+
+        <!-- Footer Section: Contact Info -->
+        <div class="footer-section">
+            <!-- Content remains the same -->
+           <p>
+                If You face any issue or want to know more about how to use, Feel free to contact:
+            </p>
+            <p>
+                <span class="whatsapp-icon"></span>WhatsApp:
+                <a href="https://wa.me/919135684363?text=Hi%20Satyam,%20I%20need%20help%20with%20the%20CAD%20POINT%20Lead%20Caller." target="_blank">9135684363</a>
+            </p>
+             <p>
+                <span class="phone-icon"></span>Call: <a href="tel:+919135684363">9135684363</a>
+                (Satyam)
+            </p>
+        </div>
+
+    </div> <!-- End of container -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const numberInput = document.getElementById('numberInput');
+            const processTextBtn = document.getElementById('processTextBtn');
+            const fileInput = document.getElementById('fileInput');
+            const fileNameDisplay = document.getElementById('fileName');
+            const clearFileBtn = document.getElementById('clearFileBtn');
+            const outputNumbersDiv = document.getElementById('outputNumbers');
+            const errorMessageDiv = document.getElementById('errorMessage');
+
+            function displayError(message) { errorMessageDiv.textContent = message; }
+            function clearError() { errorMessageDiv.textContent = ''; }
+            function resetFileInput() {
+                fileInput.value = null;
+                fileNameDisplay.textContent = 'कोई फ़ाइल नहीं चुनी गई';
+            }
+
+            // --- Event Listeners ---
+            processTextBtn.addEventListener('click', () => {
+                clearError();
+                try {
+                    const text = numberInput.value;
+                    if (text.trim() === '') {
+                        displayError('कृपया टेक्स्ट एरिया में नंबर पेस्ट करें।');
+                        outputNumbersDiv.innerHTML = ''; return;
+                    }
+                    const numbers = parseNumbersFromText(text);
+                    displayClickableNumbers(numbers);
+                    resetFileInput();
+                } catch (error) {
+                    displayError('टेक्स्ट प्रोसेस करने में त्रुटि: ' + error.message);
+                    outputNumbersDiv.innerHTML = '<p>नंबर प्रोसेस करने में समस्या हुई।</p>';
+                    console.error("Error during text processing:", error);
+                }
+            });
+
+            fileInput.addEventListener('change', (event) => {
+                clearError();
+                const file = event.target.files[0];
+                if (!file) {
+                    resetFileInput(); return;
+                }
+
+                fileNameDisplay.textContent = file.name;
+                const reader = new FileReader();
+                const fileType = file.name.split('.').pop().toLowerCase();
+
+                reader.onload = (e) => {
+                    console.log("FileReader onload triggered for file type:", fileType); // Debug Log
+                    try {
+                        let numbers = [];
+                        if (fileType === 'txt' || fileType === 'csv') {
+                            // --- Handle TXT/CSV ---
+                            console.log("Reading as text file..."); // Debug Log
+                            const fileContent = e.target.result;
+                            if (!fileContent || fileContent.trim() === '') {
+                                displayError('फ़ाइल खाली है या टेक्स्ट फॉर्मेट में नहीं है।');
+                                outputNumbersDiv.innerHTML = ''; return;
+                            }
+                            numbers = parseNumbersFromText(fileContent);
+
+                        } else if (fileType === 'xls' || fileType === 'xlsx') {
+                             // --- Handle Excel using SheetJS ---
+                             console.log("Reading as Excel file..."); // Debug Log
+                            const data = new Uint8Array(e.target.result);
+                            console.log("ArrayBuffer length:", data.length); // Debug Log
+
+                            // Check if SheetJS is loaded
+                            if (typeof XLSX === 'undefined') {
+                                throw new Error("एक्सेल रीडिंग लाइब्रेरी (SheetJS) लोड नहीं हुई।");
+                            }
+
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            console.log("Workbook Sheets:", workbook.SheetNames); // Debug Log
+
+                            if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                                throw new Error("एक्सेल फ़ाइल में कोई शीट नहीं मिली।");
+                            }
+                            const firstSheetName = workbook.SheetNames[0]; // Use the first sheet found
+                            const worksheet = workbook.Sheets[firstSheetName];
+
+                             if (!worksheet) {
+                                throw new Error(`एक्सेल फ़ाइल में शीट '${firstSheetName}' नहीं पढ़ी जा सकी।`);
+                            }
+
+                            // Extract data as array of arrays
+                            const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null }); // Use null defval
+                            console.log("Excel Sheet Data (raw arrays):", sheetData.slice(0, 10)); // Log first 10 rows
+
+                            // --- *** UPDATED EXTRACTION LOGIC: Look in all cells *** ---
+                            let extractedNumbersText = "";
+                            sheetData.forEach((row, rowIndex) => {
+                                if (row && Array.isArray(row)) {
+                                    row.forEach((cellValue, colIndex) => {
+                                        // Check if cellValue is not null/undefined
+                                        if (cellValue !== null && cellValue !== undefined) {
+                                            const cellString = String(cellValue).trim();
+                                            // Add any non-empty cell content.
+                                            // parseNumbersFromText will validate if it's a phone number.
+                                            if(cellString) {
+                                                extractedNumbersText += cellString + '\n';
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                            // --- *** END OF UPDATED EXTRACTION LOGIC *** ---
+
+                            console.log("Text Extracted from All Excel Cells:", extractedNumbersText.substring(0, 500) + "..."); // Debug Log
+
+                            if (extractedNumbersText.trim() === '') {
+                                 throw new Error("एक्सेल फ़ाइल की पहली शीट में कोई पहचानने योग्य टेक्स्ट/नंबर नहीं मिला।");
+                            }
+                            // Parse the extracted text using the existing function
+                            numbers = parseNumbersFromText(extractedNumbersText);
+                            console.log("Numbers Parsed from Excel Text:", numbers); // Debug Log
+
+                        } else {
+                             throw new Error("असमर्थित फ़ाइल प्रकार: ." + fileType);
+                        }
+
+                        // Display results
+                        displayClickableNumbers(numbers);
+                        numberInput.value = ''; // Clear textarea after successful file processing
+
+                    } catch (error) {
+                         displayError('फ़ाइल प्रोसेस करने में त्रुटि: ' + error.message);
+                         outputNumbersDiv.innerHTML = '<p>फ़ाइल के नंबर प्रोसेस करने में समस्या हुई। कृपया कंसोल (F12) देखें।</p>';
+                         console.error("Error during file processing:", error);
+                    }
+                }; // end reader.onload
+
+                reader.onerror = (errorEvent) => {
+                    displayError('फ़ाइल पढ़ने में त्रुटि हुई।');
+                    outputNumbersDiv.innerHTML = '<p>फ़ाइल पढ़ने में समस्या हुई।</p>';
+                    resetFileInput();
+                    console.error("File Reading Error:", errorEvent);
+                };
+
+                // Read file based on type
+                if (fileType === 'txt' || fileType === 'csv') {
+                    reader.readAsText(file);
+                } else if (fileType === 'xls' || fileType === 'xlsx') {
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    displayError("असमर्थित फ़ाइल प्रकार: ." + fileType);
+                    resetFileInput();
+                }
+            }); // end fileInput listener
+
+            clearFileBtn.addEventListener('click', () => {
+                clearError();
+                resetFileInput();
+                outputNumbersDiv.innerHTML = '<p>फ़ाइल चयन हटा दिया गया है।</p>';
+            });
+
+            // --- Helper Functions (parseNumbersFromText, displayClickableNumbers) ---
+            function parseNumbersFromText(text) {
+                 console.log("Parsing text starting with:", text ? text.substring(0, 100) + "..." : "null"); // Debug Log
+                if (!text) return [];
+                // More robust splitting: handles various line breaks and separators
+                const lines = text.split(/[\r\n,;]+/).map(line => line.trim()).filter(line => line); // Split by newline, comma, semicolon, trim, remove empty
+                console.log("Lines found:", lines.length, lines.slice(0, 10)); // Debug Log
+
+                const numbersMap = new Map();
+                lines.forEach(line => {
+                    const originalFormat = line; // Already trimmed
+                    // Remove common non-digit characters except leading +
+                    let potentialNumber = originalFormat.replace(/[()\-\s./#*]/g, ''); // Added ./#* removal
+
+                    // Handle leading '0' for Indian numbers (optional, depends on data)
+                    // if (potentialNumber.startsWith('0') && potentialNumber.length === 11) {
+                    //     potentialNumber = '+91' + potentialNumber.substring(1);
+                    // } else if (potentialNumber.length === 10 && !potentialNumber.startsWith('+')) {
+                    //      potentialNumber = '+91' + potentialNumber; // Assuming Indian numbers if 10 digits
+                    // }
+
+                    if (potentialNumber.startsWith('00')) {
+                        potentialNumber = '+' + potentialNumber.substring(2);
+                    }
+
+                    // Validate format (7-15 digits, optional +)
+                    if (potentialNumber.match(/^\+?\d{7,15}$/)) {
+                        if (!numbersMap.has(potentialNumber)) {
+                             numbersMap.set(potentialNumber, originalFormat);
+                             console.log(`Valid number added: Original='${originalFormat}', Cleaned='${potentialNumber}'`);// Debug Log
+                        }
+                    } else {
+                         // Optional: Log skipped lines only if they aren't obviously headers etc.
+                         if (originalFormat.match(/\d/)) { // Only log if it contained digits but failed validation
+                            console.warn(`Skipping invalid format: '${originalFormat}' (Cleaned: '${potentialNumber}')`);
+                         }
+                    }
+                });
+                const results = Array.from(numbersMap, ([cleaned, original]) => ({ original, cleaned }));
+                 console.log(`Parsing complete. Found ${results.length} unique valid numbers.`); // Debug Log
+                return results;
+            }
+
+            function displayClickableNumbers(numberData) {
+                outputNumbersDiv.innerHTML = '';
+                if (!numberData || numberData.length === 0) {
+                    outputNumbersDiv.innerHTML = '<p>प्रोसेस करने के लिए कोई मान्य फ़ोन नंबर नहीं मिला। सुनिश्चित करें कि नंबर सही फॉर्मेट में हैं (कम से कम 7 अंक) और फ़ाइल में मौजूद हैं।</p>';
+                    return;
+                }
+                const ul = document.createElement('ul');
+                numberData.forEach(data => {
+                    try {
+                        if (!data || !data.original || !data.cleaned) return;
+                        const li = document.createElement('li');
+                        const numberText = document.createElement('span');
+                        numberText.className = 'number-text';
+                        numberText.textContent = data.original;
+                        const a = document.createElement('a');
+                        a.className = 'call-link';
+                        a.href = `tel:${data.cleaned}`;
+                        a.textContent = 'कॉल करें';
+                        li.appendChild(numberText); li.appendChild(a); ul.appendChild(li);
+                    } catch (error) {
+                         console.error(`Error displaying number ${data?.original}: ${error.message}`, error);
+                         const errorLi = document.createElement('li');
+                         errorLi.textContent = `नंबर ${data?.original || '?'} दिखाने में त्रुटि।`;
+                         errorLi.style.color = 'orange'; ul.appendChild(errorLi);
+                    }
+                });
+                outputNumbersDiv.appendChild(ul);
+            }
+
+            outputNumbersDiv.innerHTML = '<p>नंबर पेस्ट करें या फ़ाइल अपलोड करें...</p>';
+        }); // End of DOMContentLoaded
+    </script>
+
+</body>
+</html>
